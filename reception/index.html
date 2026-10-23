@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="26期 受付集計">
+<meta name="theme-color" content="#24456e">
+<title>受付集計｜第5回 石神井高校26期同期会</title>
+<style>
+:root{--ok:#1f8f4e;--ok-bg:#d8f3e2;--line:#c9ced6;--ink:#1b1f24;--sub:#5b6470;--hdr:#f7f8fa;--accent:#24456e}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans CJK JP","Yu Gothic",sans-serif;color:var(--ink);background:#fff;font-size:18px;touch-action:manipulation}
+header{position:sticky;top:0;z-index:10;background:var(--hdr);border-bottom:2px solid var(--accent);padding:8px 12px calc(6px) 12px;padding-top:max(8px,env(safe-area-inset-top));box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.title{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;color:var(--accent)}
+.title .sp{flex:1}
+.btn{font:inherit;font-size:15px;border:1px solid #9aa3ae;background:#fff;border-radius:8px;padding:8px 12px;min-height:40px}
+.btn.danger{color:#b42318;border-color:#e3a19a}
+.stats{display:grid;gap:6px;margin-top:6px}
+.l1{grid-template-columns:1fr 1fr}
+.l2{grid-template-columns:1fr 1fr 1fr}
+.stat{background:#fff;border:1px solid var(--line);border-radius:10px;padding:6px 10px}
+.stat .k{font-size:13px;color:var(--sub)}
+.stat .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.stat .v small{font-size:15px;color:var(--sub);font-weight:600}
+.stat.total{background:#eef3fa;border-color:#9fb4d3}
+.jump{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center}
+.jump button{font:inherit;font-size:15px;min-width:46px;min-height:40px;border-radius:8px;border:1px solid #9aa3ae;background:#fff}
+.jump input{font:inherit;font-size:16px;flex:1;min-width:140px;min-height:40px;border:1px solid #9aa3ae;border-radius:8px;padding:0 10px}
+main{padding:0 8px 40vh 8px}
+.ch{scroll-margin-top:var(--hh,200px);margin:14px 0 0 0;padding:6px 12px;background:var(--accent);color:#fff;font-weight:700;font-size:18px;border-radius:8px 8px 0 0;display:flex;justify-content:space-between}
+.ch small{font-weight:500;opacity:.9;font-size:14px}
+.row{display:grid;grid-template-columns:64px 1fr 150px 150px;gap:6px;align-items:stretch;padding:5px 4px;border-bottom:1px solid var(--line)}
+.row.gsep{border-top:2px dashed #9aa3ae}
+.cl{display:flex;align-items:center;justify-content:center;color:var(--sub);font-size:16px}
+.nm{display:flex;flex-direction:column;justify-content:center;font-size:20px;line-height:1.25;min-width:0}
+.nm small{font-size:13px;color:var(--sub)}
+.cell{font:inherit;border:2px solid #b8c0ca;background:#fff;border-radius:10px;min-height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;user-select:none;-webkit-user-select:none;cursor:pointer;color:var(--ink);padding:2px}
+.cell .p{font-size:13px;color:var(--sub)}
+.cell .s{font-size:17px;font-weight:700}
+.cell.dim{opacity:.45;border-style:dashed}
+.cell.tbd{border-color:#d9a400;background:#fff9e3}
+.cell.tbd .s{color:#8a6a00}
+.cell.on{background:var(--ok-bg);border-color:var(--ok);opacity:1;border-style:solid}
+.cell.on .s{color:var(--ok)}
+.cell.on .p{color:#2f6b47}
+.walk input{font:inherit;font-size:18px;width:100%;min-height:44px;border:1px solid #b8c0ca;border-radius:8px;padding:0 8px}
+.walk .cl input{font-size:15px;text-align:center;padding:0 2px}
+.hidden{display:none}
+.legend{font-size:13px;color:var(--sub);margin:8px 4px 0}
+@media (max-width:700px){.row{grid-template-columns:52px 1fr 118px 118px}.stat .v{font-size:18px}.l2{grid-template-columns:1fr 1fr}.l2 .total{grid-column:1/3}}
+</style>
+</head>
+<body>
+<header id="hdr">
+  <div class="title">第5回 石神井高校26期同期会　受付集計（11/1）<span class="sp"></span><button class="btn danger" id="reset">リセット</button></div>
+  <div class="stats l1">
+    <div class="stat"><div class="k">1次会人数（受付済／予定）</div><div class="v" id="n1"></div></div>
+    <div class="stat"><div class="k">2次会人数（受付済／予定）</div><div class="v" id="n2"></div></div>
+  </div>
+  <div class="stats l2">
+    <div class="stat"><div class="k">1次会分 預かり合計（受付済／予定）</div><div class="v" id="y1"></div></div>
+    <div class="stat"><div class="k">2次会分 預かり合計（受付済／予定）</div><div class="v" id="y2"></div></div>
+    <div class="stat total"><div class="k">総合計（受付済／予定）</div><div class="v" id="yt"></div></div>
+  </div>
+  <div class="jump" id="jump"><input id="q" type="search" placeholder="名前・旧姓で検索" autocomplete="off"></div>
+</header>
+<main id="list"></main>
+<script>
+const PEOPLE=[{"id": "p0", "cls": "A組", "name": "榎戸政視", "old": "", "g": "男", "p2": "○"}, {"id": "p1", "cls": "A組", "name": "大塚英男", "old": "", "g": "男", "p2": "○"}, {"id": "p2", "cls": "A組", "name": "大津敏久", "old": "", "g": "男", "p2": "○"}, {"id": "p3", "cls": "A組", "name": "善如寺　功", "old": "", "g": "男", "p2": "○"}, {"id": "p4", "cls": "A組", "name": "高松　弘行", "old": "", "g": "男", "p2": "○"}, {"id": "p5", "cls": "A組", "name": "小嶋美奈子", "old": "伊藤", "g": "女", "p2": "○"}, {"id": "p6", "cls": "A組", "name": "遠田佳子", "old": "吉田", "g": "女", "p2": "○"}, {"id": "p7", "cls": "A組", "name": "山口春子", "old": "森下", "g": "女", "p2": "×"}, {"id": "p8", "cls": "B組", "name": "片江　啓訓", "old": "", "g": "男", "p2": "○"}, {"id": "p9", "cls": "B組", "name": "牧山", "old": "", "g": "男", "p2": "○"}, {"id": "p10", "cls": "B組", "name": "中村あけみ", "old": "佐野", "g": "女", "p2": "×"}, {"id": "p11", "cls": "B組", "name": "能宗絹子", "old": "前橋", "g": "女", "p2": "○"}, {"id": "p12", "cls": "B組", "name": "米倉　弘子", "old": "森田", "g": "女", "p2": "×"}, {"id": "p13", "cls": "C組", "name": "安良城　盛太郎", "old": "", "g": "男", "p2": "○"}, {"id": "p14", "cls": "C組", "name": "今泉弘志", "old": "", "g": "男", "p2": "○"}, {"id": "p15", "cls": "C組", "name": "関　純", "old": "", "g": "男", "p2": "×"}, {"id": "p16", "cls": "C組", "name": "田川　敏行", "old": "", "g": "男", "p2": "○"}, {"id": "p17", "cls": "C組", "name": "飯島靖子", "old": "笠原", "g": "女", "p2": "○"}, {"id": "p18", "cls": "C組", "name": "伊東順子", "old": "伊藤", "g": "女", "p2": "○"}, {"id": "p19", "cls": "C組", "name": "内池圭子", "old": "河井", "g": "女", "p2": "×"}, {"id": "p20", "cls": "D組", "name": "安達　良平", "old": "", "g": "男", "p2": "○"}, {"id": "p21", "cls": "D組", "name": "石田　辰美", "old": "", "g": "男", "p2": "×"}, {"id": "p22", "cls": "D組", "name": "北地哲也", "old": "", "g": "男", "p2": "○"}, {"id": "p23", "cls": "D組", "name": "tadatoshi kimura", "old": "", "g": "男", "p2": "○"}, {"id": "p24", "cls": "D組", "name": "斎藤一幸", "old": "", "g": "男", "p2": "○"}, {"id": "p25", "cls": "D組", "name": "塩田能也", "old": "", "g": "男", "p2": "○"}, {"id": "p26", "cls": "D組", "name": "鈴木英司", "old": "", "g": "男", "p2": "○"}, {"id": "p27", "cls": "D組", "name": "利光章", "old": "", "g": "男", "p2": "○"}, {"id": "p28", "cls": "D組", "name": "直川　朗", "old": "", "g": "男", "p2": "○"}, {"id": "p29", "cls": "D組", "name": "中尾透", "old": "", "g": "男", "p2": "○"}, {"id": "p30", "cls": "D組", "name": "藤芳一郎", "old": "", "g": "男", "p2": "○"}, {"id": "p31", "cls": "D組", "name": "本間　暁", "old": "", "g": "男", "p2": "○"}, {"id": "p32", "cls": "D組", "name": "盆子原　正典", "old": "", "g": "男", "p2": "×"}, {"id": "p33", "cls": "D組", "name": "齊藤睦", "old": "", "g": "女", "p2": "×"}, {"id": "p34", "cls": "D組", "name": "塩田直子", "old": "永田", "g": "女", "p2": "○"}, {"id": "p35", "cls": "E組", "name": "福下健一", "old": "", "g": "男", "p2": "○"}, {"id": "p36", "cls": "E組", "name": "松永正明", "old": "", "g": "男", "p2": "×"}, {"id": "p37", "cls": "E組", "name": "村治能昌", "old": "", "g": "男", "p2": "×"}, {"id": "p38", "cls": "E組", "name": "安田　仁子", "old": "金", "g": "女", "p2": "○"}, {"id": "p39", "cls": "F組", "name": "石塚明夫", "old": "", "g": "男", "p2": "○"}, {"id": "p40", "cls": "F組", "name": "前田眞吉", "old": "", "g": "男", "p2": "○"}, {"id": "p41", "cls": "F組", "name": "吉田勝一", "old": "", "g": "男", "p2": "○"}, {"id": "p42", "cls": "F組", "name": "大森　貞美", "old": "前田", "g": "女", "p2": "○"}, {"id": "p43", "cls": "F組", "name": "川口美樹", "old": "矢幡", "g": "女", "p2": "×"}, {"id": "p44", "cls": "F組", "name": "島まり", "old": "新谷", "g": "女", "p2": "△"}, {"id": "p45", "cls": "F組", "name": "若林美南子", "old": "大町", "g": "女", "p2": "×"}, {"id": "p46", "cls": "G組", "name": "小島　倫壽", "old": "", "g": "男", "p2": "○"}, {"id": "p47", "cls": "G組", "name": "菅野直樹", "old": "", "g": "男", "p2": "○"}, {"id": "p48", "cls": "G組", "name": "丹野好生", "old": "", "g": "男", "p2": "×"}, {"id": "p49", "cls": "G組", "name": "仲野　裕二", "old": "", "g": "男", "p2": "×"}, {"id": "p50", "cls": "G組", "name": "中村政信", "old": "", "g": "男", "p2": "○"}, {"id": "p51", "cls": "G組", "name": "福島　輝也", "old": "", "g": "男", "p2": "○"}, {"id": "p52", "cls": "G組", "name": "安井均", "old": "", "g": "男", "p2": "×"}, {"id": "p53", "cls": "G組", "name": "阿久津美都子", "old": "松尾", "g": "女", "p2": "×"}, {"id": "p54", "cls": "G組", "name": "太田　智子", "old": "宮坂", "g": "女", "p2": "×"}, {"id": "p55", "cls": "G組", "name": "山田裕美", "old": "", "g": "女", "p2": "×"}, {"id": "p56", "cls": "H組", "name": "木下　泰", "old": "", "g": "男", "p2": "○"}, {"id": "p57", "cls": "H組", "name": "澤木　宏文", "old": "", "g": "男", "p2": "○"}, {"id": "p58", "cls": "H組", "name": "山口　伸一", "old": "", "g": "男", "p2": "○"}, {"id": "p59", "cls": "H組", "name": "前田　直子", "old": "山岸", "g": "女", "p2": "○"}, {"id": "p60", "cls": "H組", "name": "山田尚子", "old": "平野", "g": "女", "p2": "×"}, {"id": "p61", "cls": "I組", "name": "梶田雅英", "old": "", "g": "男", "p2": "×"}, {"id": "p62", "cls": "I組", "name": "鈴木　勝雄", "old": "", "g": "男", "p2": "△"}, {"id": "p63", "cls": "I組", "name": "武田文憲", "old": "", "g": "男", "p2": "○"}, {"id": "p64", "cls": "I組", "name": "二木弘昌", "old": "", "g": "男", "p2": "○"}, {"id": "p65", "cls": "I組", "name": "星野義延", "old": "", "g": "男", "p2": "×"}, {"id": "p66", "cls": "I組", "name": "山崎雅己", "old": "", "g": "男", "p2": "×"}, {"id": "p67", "cls": "I組", "name": "稲垣惠子", "old": "", "g": "女", "p2": "×"}, {"id": "p68", "cls": "I組", "name": "高橋　陽子", "old": "篤", "g": "女", "p2": "○"}, {"id": "p69", "cls": "I組", "name": "時見　直子", "old": "岡", "g": "女", "p2": "×"}, {"id": "p70", "cls": "不明", "name": "今野弘子", "old": "鵜澤", "g": "女", "p2": "×"}, {"id": "p71", "cls": "不明", "name": "松本智代", "old": "野口", "g": "女", "p2": "×"}];
+const P1=9000,P2=3000,NWALK=10,KEY='doukikai26_reception_v1';
+let S={c:{},w:{}};  // c: id -> {a:time,b:time}; w: walk-in id -> {cls,name}
+try{const t=JSON.parse(localStorage.getItem(KEY)||'null');if(t&&t.c)S=t;}catch(e){}
+let storageOK=true;
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){storageOK=false;}}
+const yen=n=>'¥'+n.toLocaleString('ja-JP');
+const tm=()=>{const d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const WALK=[...Array(NWALK)].map((_,i)=>({id:'w'+i,walk:true,cls:'',name:'',old:'',p2:'×'}));
+function label(p){return p.walk?((S.w[p.id]&&S.w[p.id].name)||('予備'+(+p.id.slice(1)+1))):p.name}
+function render(){
+  const L=document.getElementById('list');let h='',prev=null,prevg=null;const classes=[];
+  PEOPLE.forEach(p=>{
+    if(p.cls!==prev){const n=PEOPLE.filter(x=>x.cls===p.cls).length;h+=`<div class="ch" id="c-${esc(p.cls)}">${esc(p.cls)}<small>${n}名</small></div>`;classes.push(p.cls);prev=p.cls;prevg=p.g;}
+    const gs=p.g!==prevg?' gsep':'';prevg=p.g;
+    h+=rowHTML(p,gs);
+  });
+  h+=`<div class="ch" id="c-予備">予備（当日受付・名前を入力）<small>${NWALK}行</small></div>`;
+  WALK.forEach(p=>h+=rowHTML(p,''));
+  h+=`<p class="legend">セルをタップで「受付済」。受付済をもう一度タップすると確認のうえ取り消し。点線の2次会セル＝1次会のみ予定（当日2次会参加も受付可）、黄色＝2次会未定。データはこの端末のブラウザ内（localStorage）にのみ保存されます。</p>`;
+  L.innerHTML=h;
+  const J=document.getElementById('jump');
+  J.insertAdjacentHTML('afterbegin',[...classes,'予備'].map(c=>`<button data-j="${esc(c)}">${esc(c.replace('組',''))}</button>`).join(''));
+  paint();
+}
+function rowHTML(p,gs){
+  const c2cls=p.p2==='○'?'':(p.p2==='△'?' tbd':' dim');
+  const nm=p.walk?`<input data-wn="${p.id}" placeholder="名前を入力" value="${esc((S.w[p.id]||{}).name||'')}">`
+     :`<span>${esc(p.name)}</span>${p.old?`<small>旧姓 ${esc(p.old)}</small>`:''}`;
+  const cl=p.walk?`<input data-wc="${p.id}" placeholder="組" value="${esc((S.w[p.id]||{}).cls||'')}">`:esc(p.cls);
+  return `<div class="row${gs}${p.walk?' walk':''}" data-r="${p.id}" data-s="${esc(p.name+' '+p.old)}">
+   <div class="cl">${cl}</div><div class="nm">${nm}</div>
+   <button class="cell" data-id="${p.id}" data-k="a"><span class="p">1次会 ${yen(P1)}</span><span class="s"></span></button>
+   <button class="cell${c2cls}" data-id="${p.id}" data-k="b" data-plan="${p.p2}"><span class="p">2次会 ${yen(P2)}</span><span class="s"></span></button></div>`;
+}
+function paint(){
+  document.querySelectorAll('.cell').forEach(b=>{
+    const r=S.c[b.dataset.id]||{},on=!!r[b.dataset.k];
+    b.classList.toggle('on',on);
+    const plan=b.dataset.plan;
+    b.querySelector('.s').textContent=on?('✓ 受付済 '+r[b.dataset.k]):(b.dataset.k==='b'?(plan==='○'?'未受付':plan==='△'?'未定':'（予定外）'):'未受付');
+  });
+  // totals
+  let a=0,b=0,a2plan=0,b2plan=0;
+  const all=PEOPLE.concat(WALK);
+  all.forEach(p=>{const r=S.c[p.id]||{};
+    if(r.a)a++; if(r.b)b++;
+    if(!p.walk) a2plan++; else if(r.a) a2plan++;          // 1次会予定 = 名簿72名 + 予備で受付した人
+    if(p.p2==='○'&&!p.walk) b2plan++; else if(r.b) b2plan++; // 2次会予定 = ○の人 + 予定外で受付した人
+  });
+  const set=(id,x,y,f)=>document.getElementById(id).innerHTML=`${f(x)}<small> ／ ${f(y)}</small>`;
+  const n=x=>x+'名';
+  set('n1',a,a2plan,n);set('n2',b,b2plan,n);
+  set('y1',a*P1,a2plan*P1,yen);set('y2',b*P2,b2plan*P2,yen);set('yt',a*P1+b*P2,a2plan*P1+b2plan*P2,yen);
+  document.documentElement.style.setProperty('--hh',(document.getElementById('hdr').offsetHeight+8)+'px');
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.cell');
+  if(b){const id=b.dataset.id,k=b.dataset.k,r=S.c[id]||(S.c[id]={});
+    const p=PEOPLE.find(x=>x.id===id)||WALK.find(x=>x.id===id);
+    const what=(k==='a'?'1次会':'2次会');
+    if(r[k]){ if(!confirm(`${label(p)} さんの${what}受付を取り消しますか？`))return; delete r[k]; }
+    else { r[k]=tm(); }
+    save();paint();return;}
+  const j=e.target.closest('[data-j]');
+  if(j){const el=document.getElementById('c-'+j.dataset.j);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});return;}
+});
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.dataset.wn||t.dataset.wc){const id=t.dataset.wn||t.dataset.wc;S.w[id]=S.w[id]||{};S.w[id][t.dataset.wn?'name':'cls']=t.value;save();}
+  if(t.id==='q'){const q=t.value.trim();document.querySelectorAll('.row:not(.walk)').forEach(r=>r.classList.toggle('hidden',q&&!r.dataset.s.includes(q)));
+    document.querySelectorAll('.ch').forEach(c=>c.classList.toggle('hidden',!!q&&c.id!=='c-予備'));}
+});
+document.getElementById('reset').addEventListener('click',()=>{
+  if(!confirm('すべての受付記録と予備欄の入力を消去します。よろしいですか？'))return;
+  if(!confirm('本当にリセットしますか？（元に戻せません）'))return;
+  S={c:{},w:{}};save();location.reload();
+});
+window.addEventListener('resize',paint);
+render();
+if(!storageOK)alert('この端末では保存（localStorage）が使えません。再読み込みで記録が消えます。');
+</script>
+<script>
+if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(e=>console.warn('SW登録失敗',e));});}
+</script>
+</body>
+</html>
